@@ -307,3 +307,14 @@ typealias GeocodingResponse = City
 struct UVResponse: Codable {
     let value: Double
 }
+// MARK: - Favorites Model
+struct SavedCity: Identifiable, Codable, Equatable {
+    let id: UUID
+    let name: String
+    let lat: Double
+    let lon: Double
+    let country: String?
+    // We make these optional so decoding doesn't fail if DB returns extra fields
+    let user_id: UUID?
+    let created_at: String?
+}
