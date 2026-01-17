@@ -488,8 +488,8 @@ struct CircleGlassModifier: ViewModifier {
 }
 
 // This is the function HomeView is looking for:
-extension View {
-    func glassCircle() -> some View {
-        self.modifier(CircleGlassModifier())
-    }
-}
+//extension View {
+//    func glassCircle() -> some View {
+//        self.modifier(CircleGlassModifier())
+//    }
+//}
