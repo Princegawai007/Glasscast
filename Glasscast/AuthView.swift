@@ -187,6 +187,18 @@ struct AuthView: View {
                                 .multilineTextAlignment(.center)
                         }
                         
+                        // First Name (Only shown in Sign Up mode)
+                        if viewModel.isSignUp {
+                            glassInput(icon: "person", placeholder: "First Name", text: $viewModel.firstName)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        
+                        // Last Name (Only shown in Sign Up mode)
+                        if viewModel.isSignUp {
+                            glassInput(icon: "person.fill", placeholder: "Last Name", text: $viewModel.lastName)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        
                         // Email
                         glassInput(icon: "envelope", placeholder: "Email", text: $viewModel.email)
                         
@@ -226,6 +238,12 @@ struct AuthView: View {
                             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                                 viewModel.isSignUp.toggle()
                                 viewModel.errorMessage = nil // Clear errors on toggle
+                                // Clear name fields when switching modes
+                                if !viewModel.isSignUp {
+                                    viewModel.firstName = ""
+                                    viewModel.lastName = ""
+                                    viewModel.confirmPassword = ""
+                                }
                             }
                         }) {
                             Text(viewModel.isSignUp ? "Already have an account? Sign In" : "Don't have an account? Create Account")
@@ -239,6 +257,15 @@ struct AuthView: View {
                 
                 Spacer()
             }
+        }
+        .alert("Account Created", isPresented: $viewModel.showSuccessAlert) {
+            Button("OK") {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    viewModel.isSignUp = false
+                }
+            }
+        } message: {
+            Text("Your account has been created successfully. Please sign in.")
         }
     }
     

@@ -97,6 +97,9 @@ class AuthViewModel: ObservableObject {
     @Published var password = ""
     @Published var confirmPassword = "" // New Field
     @Published var isSignUp = false     // The Toggle State
+    @Published var firstName = ""
+    @Published var lastName = ""
+    @Published var showSuccessAlert = false
     
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -137,33 +140,100 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
     
+//    func signUp() async {
+//        guard !email.isEmpty, !password.isEmpty else {
+//            errorMessage = "Please fill in all fields."
+//            return
+//        }
+//        
+//        // Validate First Name and Last Name
+//        guard !firstName.isEmpty, !lastName.isEmpty else {
+//            errorMessage = "Please enter your first and last name."
+//            return
+//        }
+//        
+//        // Validate Passwords Match
+//        guard password == confirmPassword else {
+//            errorMessage = "Passwords do not match."
+//            return
+//        }
+//        
+//        guard password.count >= 6 else {
+//            errorMessage = "Password must be at least 6 characters."
+//            return
+//        }
+//        
+//        isLoading = true
+//        errorMessage = nil
+//        
+//        do {
+//            _ = try await supabase.auth.signUp(
+//                email: email,
+//                password: password,
+//                data: [
+//                    "first_name": firstName,
+//                    "last_name": lastName
+//                ] as [String: Any]
+//            )
+//            
+//            // On successful sign-up, show success alert
+//            showSuccessAlert = true
+//            
+//            // If auto-login happened, sign out so user can log in manually
+//            // This ensures they see the success message and can proceed to login
+//            try? await supabase.auth.signOut()
+//        } catch {
+//            errorMessage = error.localizedDescription
+//        }
+//        
+//        isLoading = false
+//    }
     func signUp() async {
-        guard !email.isEmpty, !password.isEmpty else {
-            errorMessage = "Please fill in all fields."
-            return
+            guard !email.isEmpty, !password.isEmpty else {
+                errorMessage = "Please fill in all fields."
+                return
+            }
+            
+            // Validate First Name and Last Name
+            guard !firstName.isEmpty, !lastName.isEmpty else {
+                errorMessage = "Please enter your first and last name."
+                return
+            }
+            
+            // Validate Passwords Match
+            guard password == confirmPassword else {
+                errorMessage = "Passwords do not match."
+                return
+            }
+            
+            guard password.count >= 6 else {
+                errorMessage = "Password must be at least 6 characters."
+                return
+            }
+            
+            isLoading = true
+            errorMessage = nil
+            
+            do {
+                // FIX IS HERE: Wrap strings in .string() and remove the cast
+                _ = try await supabase.auth.signUp(
+                    email: email,
+                    password: password,
+                    data: [
+                        "first_name": .string(firstName),
+                        "last_name": .string(lastName)
+                    ]
+                )
+                
+                // On successful sign-up, show success alert
+                showSuccessAlert = true
+                
+                // If auto-login happened, sign out so user can log in manually
+                try? await supabase.auth.signOut()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            
+            isLoading = false
         }
-        
-        // Validate Passwords Match
-        guard password == confirmPassword else {
-            errorMessage = "Passwords do not match."
-            return
-        }
-        
-        guard password.count >= 6 else {
-            errorMessage = "Password must be at least 6 characters."
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        
-        do {
-            _ = try await supabase.auth.signUp(email: email, password: password)
-            // If auto-confirm is off, you might need to tell user to check email here
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        
-        isLoading = false
-    }
 }
