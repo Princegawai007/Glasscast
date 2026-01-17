@@ -186,14 +186,30 @@ struct MetricsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 4)
                     
+//                    LazyVGrid(columns: columns, spacing: 16) {
+//                        metricCard(title: "HUMIDITY", value: viewModel.humidity, icon: "drop.fill", subtext: "-2%")
+//                        metricCard(title: "WIND SPEED", value: viewModel.windSpeed, icon: "wind", subtext: "+3%")
+//                        metricCard(title: "UV INDEX", value: String(format: "%.0f", viewModel.uvIndex), icon: "sun.max.fill", subtext: viewModel.uvIndex > 5 ? "High" : "Moderate")
+//                        metricCard(title: "VISIBILITY", value: "10 km", icon: "eye.fill", subtext: "Clear")
+//                        metricCard(title: "PRESSURE", value: "1012 hPa", icon: "gauge", subtext: "Stable")
+//                        metricCard(title: "DEW POINT", value: "9°C", icon: "thermometer.sun.fill", subtext: "Dry air")
+//                    }
                     LazyVGrid(columns: columns, spacing: 16) {
-                        metricCard(title: "HUMIDITY", value: viewModel.humidity, icon: "drop.fill", subtext: "-2%")
-                        metricCard(title: "WIND SPEED", value: viewModel.windSpeed, icon: "wind", subtext: "+3%")
-                        metricCard(title: "UV INDEX", value: String(format: "%.0f", viewModel.uvIndex), icon: "sun.max.fill", subtext: viewModel.uvIndex > 5 ? "High" : "Moderate")
-                        metricCard(title: "VISIBILITY", value: "10 km", icon: "eye.fill", subtext: "Clear")
-                        metricCard(title: "PRESSURE", value: "1012 hPa", icon: "gauge", subtext: "Stable")
-                        metricCard(title: "DEW POINT", value: "9°C", icon: "thermometer.sun.fill", subtext: "Dry air")
-                    }
+                                            metricCard(title: "HUMIDITY", value: viewModel.humidity, icon: "drop.fill", subtext: "-2%")
+                                            
+                                            metricCard(title: "WIND SPEED", value: viewModel.windSpeed, icon: "wind", subtext: "+3%")
+                                            
+                                            metricCard(title: "UV INDEX", value: String(format: "%.0f", viewModel.uvIndex), icon: "sun.max.fill", subtext: viewModel.uvIndex > 5 ? "High" : "Moderate")
+                                            
+                                            // UPDATED: Now uses dynamic Visibility
+                                            metricCard(title: "VISIBILITY", value: viewModel.visibility, icon: "eye.fill", subtext: "Clear")
+                                            
+                                            // UPDATED: Now uses dynamic Pressure
+                                            metricCard(title: "PRESSURE", value: viewModel.pressure, icon: "gauge", subtext: "Stable")
+                                            
+                                            // UPDATED: Now uses dynamic Dew Point / Feels Like
+                                            metricCard(title: "FEELS LIKE", value: viewModel.dewPoint, icon: "thermometer.sun.fill", subtext: "Dry air")
+                                        }
                     
                     // Weekly Trend Chart
                     Text("Weekly Trend")
@@ -203,52 +219,107 @@ struct MetricsView: View {
                         .padding(.horizontal, 4)
                         .padding(.top, 16)
                     
+//                    GlassEffectContainer(cornerRadius: 24) {
+//                        // FIX: Check for empty data to prevent broken charts
+//                        if viewModel.dailyForecast.isEmpty {
+//                            VStack {
+//                                Image(systemName: "chart.bar.xaxis")
+//                                    .font(.largeTitle)
+//                                    .foregroundColor(.white.opacity(0.3))
+//                                Text("Chart Unavailable Offline")
+//                                    .font(.caption)
+//                                    .foregroundColor(.white.opacity(0.5))
+//                            }
+//                            .frame(maxWidth: .infinity)
+//                            .frame(height: 150)
+//                        } else {
+//                            HStack(alignment: .bottom, spacing: 12) {
+//                                ForEach(Array(viewModel.dailyForecast.prefix(5)), id: \.id) { day in
+//                                    VStack(spacing: 8) {
+//                                        Text("\(day.maxTemp)°")
+//                                            .font(.display(size: 14, weight: .bold))
+//                                            .foregroundColor(.white)
+//                                            .frame(maxWidth: .infinity)
+//                                        
+//                                        GeometryReader { geo in
+//                                            VStack {
+//                                                Spacer()
+//                                                Capsule()
+//                                                    .fill(LinearGradient(colors: [.white, .white.opacity(0.2)], startPoint: .top, endPoint: .bottom))
+//                                                    .frame(width: 25)
+//                                                    .frame(height: max(10, (CGFloat(day.maxTemp) / 50.0) * geo.size.height))
+//                                            }
+//                                            .frame(maxWidth: .infinity)
+//                                        }
+//                                        .frame(height: 100)
+//                                        
+//                                        Text(viewModel.formatDay(day.date).prefix(1))
+//                                            .font(.caption)
+//                                            .fontWeight(.semibold)
+//                                            .foregroundColor(.white.opacity(0.6))
+//                                            .frame(maxWidth: .infinity)
+//                                    }
+//                                    .frame(maxWidth: .infinity)
+//                                }
+//                            }
+//                            .padding(20)
+//                        }
+//                    }
                     GlassEffectContainer(cornerRadius: 24) {
-                        // FIX: Check for empty data to prevent broken charts
-                        if viewModel.dailyForecast.isEmpty {
-                            VStack {
-                                Image(systemName: "chart.bar.xaxis")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.white.opacity(0.3))
-                                Text("Chart Unavailable Offline")
-                                    .font(.caption)
-                                    .foregroundColor(.white.opacity(0.5))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 150)
-                        } else {
-                            HStack(alignment: .bottom, spacing: 12) {
-                                ForEach(Array(viewModel.dailyForecast.prefix(5)), id: \.id) { day in
-                                    VStack(spacing: 8) {
-                                        Text("\(day.maxTemp)°")
-                                            .font(.display(size: 14, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .frame(maxWidth: .infinity)
-                                        
-                                        GeometryReader { geo in
-                                            VStack {
-                                                Spacer()
-                                                Capsule()
-                                                    .fill(LinearGradient(colors: [.white, .white.opacity(0.2)], startPoint: .top, endPoint: .bottom))
-                                                    .frame(width: 25)
-                                                    .frame(height: max(10, (CGFloat(day.maxTemp) / 50.0) * geo.size.height))
+                                            if viewModel.dailyForecast.isEmpty {
+                                                VStack {
+                                                    Image(systemName: "chart.bar.xaxis")
+                                                        .font(.largeTitle)
+                                                        .foregroundColor(.white.opacity(0.3))
+                                                    Text("Chart Unavailable Offline")
+                                                        .font(.caption)
+                                                        .foregroundColor(.white.opacity(0.5))
+                                                }
+                                                .frame(maxWidth: .infinity)
+                                                .frame(height: 150)
+                                            } else {
+                                                HStack(alignment: .bottom, spacing: 12) {
+                                                    ForEach(Array(viewModel.dailyForecast.prefix(5)), id: \.id) { day in
+                                                        VStack(spacing: 8) {
+                                                            // Temp Label
+                                                            Text("\(day.maxTemp)°")
+                                                                .font(.display(size: 14, weight: .bold))
+                                                                .foregroundColor(.white)
+                                                                .frame(maxWidth: .infinity)
+                                                            
+                                                            // Bar Area
+                                                            GeometryReader { geo in
+                                                                VStack {
+                                                                    Spacer()
+                                                                    Capsule()
+                                                                        .fill(
+                                                                            LinearGradient(
+                                                                                colors: [.white, .white.opacity(0.2)],
+                                                                                startPoint: .top,
+                                                                                endPoint: .bottom
+                                                                            )
+                                                                        )
+                                                                        .frame(width: 25)
+                                                                        // FIX: Adjust scale based on unit (50 for C, 110 for F)
+                                                                        .frame(height: (CGFloat(day.maxTemp) / (viewModel.isCelsius ? 50.0 : 110.0)) * geo.size.height)
+                                                                }
+                                                                .frame(maxWidth: .infinity)
+                                                            }
+                                                            .frame(height: 100) // Keeps the chart area fixed
+                                                            
+                                                            // Day Label
+                                                            Text(viewModel.formatDay(day.date).prefix(1))
+                                                                .font(.caption)
+                                                                .fontWeight(.semibold)
+                                                                .foregroundColor(.white.opacity(0.6))
+                                                                .frame(maxWidth: .infinity)
+                                                        }
+                                                        .frame(maxWidth: .infinity)
+                                                    }
+                                                }
+                                                .padding(20)
                                             }
-                                            .frame(maxWidth: .infinity)
                                         }
-                                        .frame(height: 100)
-                                        
-                                        Text(viewModel.formatDay(day.date).prefix(1))
-                                            .font(.caption)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.white.opacity(0.6))
-                                            .frame(maxWidth: .infinity)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                }
-                            }
-                            .padding(20)
-                        }
-                    }
                     Spacer(minLength: 100)
                 }
                 .padding(24)

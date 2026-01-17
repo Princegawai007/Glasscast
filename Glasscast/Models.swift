@@ -219,6 +219,7 @@ struct CurrentWeatherResponse: Codable, Equatable {
     let dt: TimeInterval
     let sys: Sys?
     let visibility: Int?
+   
 }
 
 struct Coord: Codable, Equatable {
@@ -240,6 +241,7 @@ struct Main: Codable, Equatable {
     let tempMax: Double?
     let pressure: Int?
     let humidity: Int?
+//    let feels_like: Double // <--- ADD THIS LINE
     
     // The Bridge: Maps API "temp_min" to Swift "tempMin"
     enum CodingKeys: String, CodingKey {
@@ -248,6 +250,7 @@ struct Main: Codable, Equatable {
         case tempMin = "temp_min"
         case tempMax = "temp_max"
         case pressure, humidity
+//        case feels_like
     }
 }
 
