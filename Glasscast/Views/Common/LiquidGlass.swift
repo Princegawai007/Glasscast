@@ -44,7 +44,7 @@ struct LiquidGlassModifier: ViewModifier {
                         ),
                         lineWidth: 1
                     )
-                    // Inner glow to simulate thickness
+                // Inner glow to simulate thickness
                     .padding(0.5)
             }
     }
