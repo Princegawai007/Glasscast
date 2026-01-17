@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A305DB462F1B992900F4C782 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A305DB452F1B992900F4C782 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A305DB112F1B6EED00F4C782 /* Glasscast.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Glasscast.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A305DB252F1B712700F4C782 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAUDE.md; sourceTree = "<group>"; };
@@ -24,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A305DB462F1B992900F4C782 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -35,6 +40,7 @@
 			children = (
 				A305DB252F1B712700F4C782 /* CLAUDE.md */,
 				A305DB132F1B6EED00F4C782 /* Glasscast */,
+				A305DB442F1B992900F4C782 /* Frameworks */,
 				A305DB122F1B6EED00F4C782 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,6 +51,13 @@
 				A305DB112F1B6EED00F4C782 /* Glasscast.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A305DB442F1B992900F4C782 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -67,6 +80,7 @@
 			);
 			name = Glasscast;
 			packageProductDependencies = (
+				A305DB452F1B992900F4C782 /* Supabase */,
 			);
 			productName = Glasscast;
 			productReference = A305DB112F1B6EED00F4C782 /* Glasscast.app */;
@@ -348,6 +362,14 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A305DB452F1B992900F4C782 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A305DB2B2F1B750E00F4C782 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A305DB092F1B6EED00F4C782 /* Project object */;
 }
