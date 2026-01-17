@@ -135,6 +135,7 @@ struct MainTabView: View {
                 }
                 .tag(2)
         }
+        .sensoryFeedback(.selection, trigger: selectedTab)
         // Sets the color of the active tab icon (White fits your Dark theme best)
         .accentColor(.white)
         // Ensures the tab bar is visible on top of your dark background

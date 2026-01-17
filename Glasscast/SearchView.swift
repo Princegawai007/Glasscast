@@ -529,6 +529,9 @@ struct SearchView: View {
     // 1. Row for Search Results
     func searchResultRow(_ city: City) -> some View {
         Button(action: {
+            // HAPTIC HERE
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
             Task {
                 await viewModel.previewCity(city)
                 isPresented = false

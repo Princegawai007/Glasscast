@@ -670,6 +670,21 @@ struct HomeView: View {
                 }
             }
         }
+        // <--- ADD THESE MODIFIERS HERE
+                // 1. Light bump when opening Search
+                .sensoryFeedback(.impact(weight: .light), trigger: showSearch)
+                
+                // 2. Light bump when opening Settings
+                .sensoryFeedback(.impact(weight: .light), trigger: showSettings)
+                
+                // 3. Solid bump when Favoriting (Heart button)
+                .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.isFavorite)
+                
+                // 4. Success vibration when refresh finishes
+                .sensoryFeedback(.success, trigger: viewModel.isLoading) { oldValue, newValue in
+                    // Only trigger success when loading changes from true -> false
+                    return oldValue == true && newValue == false
+                }
         .sheet(isPresented: $showSearch) {
             SearchView(isPresented: $showSearch, viewModel: viewModel)
         }
