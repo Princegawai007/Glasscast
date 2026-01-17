@@ -123,6 +123,15 @@ class SessionManager: ObservableObject {
         }
     }
     
+    func signOut() async {
+        do {
+            try await supabase.auth.signOut()
+            self.session = nil
+        } catch {
+            print("Sign out error: \(error.localizedDescription)")
+        }
+    }
+    
     deinit {
         authStateTask?.cancel()
     }

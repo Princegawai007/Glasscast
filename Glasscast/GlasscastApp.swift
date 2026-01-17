@@ -42,7 +42,7 @@ struct GlasscastApp: App {
             // 2. The Switcher Logic
             Group {
                 if sessionManager.session != nil {
-                    HomeView()
+                    MainTabView()
                         // Transition animation for smooth login
                         .transition(.opacity.animation(.easeInOut))
                 } else {

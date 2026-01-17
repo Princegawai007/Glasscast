@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 internal import Combine
+internal import CoreLocation
 
 @MainActor
 class HomeViewModel: ObservableObject {
@@ -15,6 +16,12 @@ class HomeViewModel: ObservableObject {
     @Published var forecast: Forecast5Response?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var uvIndex: Double = 0
+    @Published var chartData: [Double] = []
+    
+    private let locationManager = LocationManager()
+    private let weatherService = WeatherService.shared
+    private var cancellables = Set<AnyCancellable>()
     
     // Computed properties for easy access
     var currentTemp: Int {
@@ -26,6 +33,16 @@ class HomeViewModel: ObservableObject {
     }
     
     var highLow: String {
+        // Try to find today's forecast in dailyForecast
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Look for today's forecast item
+        if let todayForecast = dailyForecast.first(where: { calendar.isDate($0.date, inSameDayAs: today) }) {
+            return "H:\(todayForecast.maxTemp)° L:\(todayForecast.minTemp)°"
+        }
+        
+        // Fallback to current weather if forecast is missing
         guard let weather = currentWeather else { return "H:--° L:--°" }
         let high = Int(weather.main.tempMax ?? weather.main.temp)
         let low = Int(weather.main.tempMin ?? weather.main.temp)
@@ -33,7 +50,7 @@ class HomeViewModel: ObservableObject {
     }
     
     var windSpeed: String {
-        let speed = currentWeather?.wind?.speed ?? 0
+        let speed = currentWeather?.wind.speed ?? 0
         // OpenWeatherMap returns m/s, convert to mph
         let mph = speed * 2.237
         return String(format: "%.0f mph", mph)
@@ -201,18 +218,54 @@ class HomeViewModel: ObservableObject {
         }
     }
     
+    init() {
+        // Observe location changes
+        locationManager.$location
+            .compactMap { $0 }
+            .sink { [weak self] location in
+                guard let self = self else { return }
+                Task { @MainActor in
+                    await self.loadWeather(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Observe authorization status changes - fallback to default location if denied
+        locationManager.$authorizationStatus
+            .sink { [weak self] status in
+                guard let self = self else { return }
+                if status == .denied || status == .restricted {
+                    Task { @MainActor in
+                        // Use default location (San Francisco) if location is denied
+                        if self.currentWeather == nil {
+                            await self.loadWeather()
+                        }
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Request location on init
+        locationManager.requestLocation()
+    }
+    
     func loadWeather(lat: Double = 37.7749, lon: Double = -122.4194) async {
         isLoading = true
         errorMessage = nil
         
         do {
-            async let weatherTask = WeatherService.shared.fetchWeather(lat: lat, lon: lon)
-            async let forecastTask = WeatherService.shared.fetchForecast(lat: lat, lon: lon)
+            async let weatherTask = weatherService.fetchWeather(lat: lat, lon: lon)
+            async let forecastTask = weatherService.fetchForecast(lat: lat, lon: lon)
+            async let uvTask = weatherService.fetchUV(lat: lat, lon: lon)
             
-            let (weather, forecastData) = try await (weatherTask, forecastTask)
+            let (weather, forecastData, uv) = try await (weatherTask, forecastTask, uvTask)
             
             self.currentWeather = weather
             self.forecast = forecastData
+            self.uvIndex = uv
+            
+            // Calculate chart data after forecast is loaded
+            calculateChartData()
         } catch {
             self.errorMessage = error.localizedDescription
             print("Error loading weather: \(error.localizedDescription)")
@@ -225,6 +278,10 @@ class HomeViewModel: ObservableObject {
         isLoading = false
     }
     
+    func previewCity(_ city: City) async {
+        await loadWeather(lat: city.lat, lon: city.lon)
+    }
+    
     func formatDate() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, h:mm a"
@@ -235,6 +292,14 @@ class HomeViewModel: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE"
         return formatter.string(from: date)
+    }
+    
+    // MARK: - Chart Data Helper
+    func calculateChartData() {
+        // Get the next 5 days from dailyForecast
+        let next5Days = Array(dailyForecast.prefix(5))
+        // Map maxTemp to Double array
+        self.chartData = next5Days.map { Double($0.maxTemp) }
     }
 }
 

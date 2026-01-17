@@ -401,9 +401,17 @@ import SwiftUI
 //
 
 import SwiftUI
+import MapKit
 
 struct HomeView: View {
-    @StateObject private var viewModel = HomeViewModel()
+    @ObservedObject var viewModel: HomeViewModel
+    var selectedTab: Binding<Int>
+    @State private var showSearch = false
+    @State private var showSettings = false
+    @State private var mapRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    )
     
     var body: some View {
         ZStack {
@@ -415,7 +423,9 @@ struct HomeView: View {
                 // MARK: - Header
                 HStack {
                     // Search Button
-                    Button(action: {}) {
+                    Button(action: {
+                        showSearch = true
+                    }) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 20))
                             .foregroundColor(.white)
@@ -441,7 +451,9 @@ struct HomeView: View {
                     Spacer()
                     
                     // Menu Button
-                    Button(action: {}) {
+                    Button(action: {
+                        showSettings = true
+                    }) {
                         Image(systemName: "line.3.horizontal")
                             .font(.system(size: 20))
                             .foregroundColor(.white)
@@ -496,18 +508,31 @@ struct HomeView: View {
                                 .font(.display(size: 18, weight: .bold))
                                 .foregroundColor(.white)
                             Spacer()
-                            Button("Details") {}
+                            Button("Details") {
+                                selectedTab.wrappedValue = 1
+                            }
                                 .font(.display(size: 14, weight: .regular))
                                 .foregroundColor(Color.primaryBrand)
                         }
                         .padding(.horizontal, 8)
                         
                         // 3. Forecast List
-                        VStack(spacing: 12) {
-                            ForEach(Array(viewModel.dailyForecast.enumerated()), id: \.element.id) { index, day in
-                                forecastRow(day: day)
-                            }
-                        }
+//                        VStack(spacing: 12) {
+//                            ForEach(Array($viewModel.dailyForecast.enumerated()), id: \.element.id) { index, day in
+//                                forecastRow(day: day)
+//                            }
+//                        }
+                        // 3. Forecast List
+                                                VStack(spacing: 12) {
+                                                    // FIX: Iterate directly by value (no $ sign, no enumerated)
+                                                    ForEach(viewModel.dailyForecast) { day in
+                                                        forecastRow(day: day)
+                                                    }
+                                                }
+                        
+                        // 4. Interactive Radar Map
+                        mapView
+                            .padding(.top, 32)
                         
                         // Spacing at bottom
                         Spacer(minLength: 50)
@@ -516,8 +541,15 @@ struct HomeView: View {
                 }
             }
         }
-        .task {
-            await viewModel.loadWeather()
+        .onAppear {
+            // LocationManager in HomeViewModel will automatically request location on init
+            // and trigger loadWeather when location is available
+        }
+        .sheet(isPresented: $showSearch) {
+            SearchView(isPresented: $showSearch, viewModel: viewModel)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
     
@@ -544,38 +576,70 @@ struct HomeView: View {
     
     // The list rows
     func forecastRow(day: DailyForecastItem) -> some View {
-        GlassEffectContainer(cornerRadius: 20) {
-            HStack {
-                Text(viewModel.formatDay(day.date))
-                    .font(.display(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 60, alignment: .leading)
-                
-                Spacer()
-                
-                // Icon (Use real icons if available, else SF Symbols)
-                Image(systemName: "cloud.fill")
-                    .renderingMode(.original)
-                    .font(.title3)
-                    .foregroundColor(.white.opacity(0.8))
-                
-                Spacer()
-                
-                HStack(spacing: 12) {
-                    Text("\(day.maxTemp)°")
-                        .font(.display(size: 16, weight: .bold))
+        Button(action: {
+            selectedTab.wrappedValue = 1
+        }) {
+            GlassEffectContainer(cornerRadius: 20) {
+                HStack {
+                    Text(viewModel.formatDay(day.date))
+                        .font(.display(size: 16, weight: .semibold))
                         .foregroundColor(.white)
-                    Text("\(day.minTemp)°")
-                        .font(.display(size: 16, weight: .regular))
-                        .foregroundColor(.white.opacity(0.4))
+                        .frame(width: 60, alignment: .leading)
+                    
+                    Spacer()
+                    
+                    // Icon (Use real icons if available, else SF Symbols)
+                    Image(systemName: "cloud.fill")
+                        .renderingMode(.original)
+                        .font(.title3)
+                        .foregroundColor(.white.opacity(0.8))
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 12) {
+                        Text("\(day.maxTemp)°")
+                            .font(.display(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("\(day.minTemp)°")
+                            .font(.display(size: 16, weight: .regular))
+                            .foregroundColor(.white.opacity(0.4))
+                    }
+                    .frame(width: 80, alignment: .trailing)
                 }
-                .frame(width: 80, alignment: .trailing)
+                .padding(16)
             }
-            .padding(16)
+        }
+    }
+    
+    // Interactive Radar Map
+    private var mapView: some View {
+        GlassEffectContainer(cornerRadius: 16) {
+            Map(coordinateRegion: $mapRegion)
+                .frame(height: 200)
+                .cornerRadius(16)
+                .colorScheme(.dark)
+                .onAppear {
+                    updateMapRegion()
+                }
+                .onChange(of: viewModel.currentWeather) { _ in
+                    updateMapRegion()
+                }
+        }
+    }
+    
+    private func updateMapRegion() {
+        if let location = viewModel.currentWeather?.coord {
+            mapRegion = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(
+                    latitude: location.lat,
+                    longitude: location.lon
+                ),
+                span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+            )
         }
     }
 }
 
 #Preview {
-    HomeView()
+    HomeView(viewModel: HomeViewModel(), selectedTab: .constant(0))
 }

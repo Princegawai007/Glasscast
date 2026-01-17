@@ -89,6 +89,59 @@ class WeatherService {
         return try await performRequest(url: url, responseType: Forecast5Response.self)
     }
     
+    /// Searches for cities using OpenWeatherMap Geocoding API
+    /// - Parameter query: City name to search for
+    /// - Returns: An array of City objects matching the search query
+    /// - Throws: WeatherServiceError for various failure scenarios
+    func searchCity(query: String) async throws -> [City] {
+        guard !query.isEmpty else {
+            return []
+        }
+        
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.openweathermap.org"
+        components.path = "/geo/1.0/direct"
+        
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "limit", value: "5"),
+            URLQueryItem(name: "appid", value: apiKey)
+        ]
+        
+        guard let url = components.url else {
+            throw WeatherServiceError.invalidURL
+        }
+        
+        return try await performRequest(url: url, responseType: [City].self)
+    }
+    
+    /// Fetches UV Index data for the given latitude and longitude using OpenWeatherMap API 2.5
+    /// - Parameters:
+    ///   - lat: Latitude in decimal degrees
+    ///   - lon: Longitude in decimal degrees
+    /// - Returns: The UV Index value as a Double
+    /// - Throws: WeatherServiceError for various failure scenarios
+    func fetchUV(lat: Double, lon: Double) async throws -> Double {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.openweathermap.org"
+        components.path = "/data/2.5/uvi"
+        
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(lat)),
+            URLQueryItem(name: "lon", value: String(lon)),
+            URLQueryItem(name: "appid", value: apiKey)
+        ]
+        
+        guard let url = components.url else {
+            throw WeatherServiceError.invalidURL
+        }
+        
+        let response = try await performRequest(url: url, responseType: UVResponse.self)
+        return response.value
+    }
+    
     // MARK: - Private Helpers
     
     /// Generic method to perform network requests and decode responses
